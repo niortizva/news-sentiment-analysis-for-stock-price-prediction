@@ -9,19 +9,11 @@ from plotly.subplots import make_subplots
 
 with st.spinner("Loading..."):
     from src.data_insights import load_data, data_quality
-    # from src.feature_engineering import prepare_features, get_llm_embeddings, scale_features
-    # from src.model import train_model, save_model
     from src.predict import predict_future
 
     price_df, news_df = load_data()
 
-# tab0, tab1, tab2, tab3 = st.tabs([
-#     "📓 Project Overview",
-#     "📊 Data Insights",
-#     "🤖 Train Model",
-#     "🔮 Predict"])
-
-tab0, tab1, tab3 = st.tabs([
+tab0, tab1, tab2 = st.tabs([
     "📓 Project Overview",
     "📊 Data Insights",
     "🔮 Predict"])
@@ -43,7 +35,14 @@ with tab0:
                 """)
     
     st.markdown("**Obtained Model Metrics**")
-    st.markdown("""
+    st.markdown(""" Metrics on the train set for the final model are as follows:
+| Horizon (days) | MAE      | R2      |
+|----------------|----------|---------|
+| 1              | 0.000357 | 0.99887 |
+| 3              | 0.000321 | 0.99968 |
+| 5              | 0.000358 | 0.99972 |
+| 10             | 0.000362 | 0.99985 |""")
+    st.markdown(""" Metrics on the test set for the final model are as follows:
 | Horizon (days) | MAE    | R2      |
 |----------------|--------|---------|
 | 1              | 0.0169 | -0.0474 |
@@ -246,80 +245,7 @@ with tab1:
     for _, row in ticker_news.iterrows():
         st.markdown(f"**{row['datetime']}** - {row['headline']}")
 
-# with tab2:
-#     # Model Training and Evaluation
-#     st.subheader("🤖 Train Model")
-#     st.markdown("**Train Multi-Horizon Model**")
-#     st.write("""
-#              In this section, we will train a multi-output regression model to predict 
-#              stock returns for multiple horizons (1, 3, 5, and 10 days ahead). 
-#              The model will be trained fusioning both technical indicators from the price
-#              data and sentiment features extracted from the news articles. We will evaluate
-#              the model's performance using appropriate regression metrics to
-#              understand its predictive capabilities and limitations.
-#              """)
-# 
-#     st.subheader("Model Training")
-# 
-#     if st.button("Start Training"):
-#         with st.spinner("Processing data..."):
-#             from src.data_loading import align_news_to_price
-#             df_aligned = align_news_to_price(price_df, news_df)
-# 
-#             st.info("Generating LLM embeddings for news...")
-#             df_with_emb = get_llm_embeddings(df_aligned)
-# 
-#             # Prepare features
-#             df_ready, numeric_cols = prepare_features(df_with_emb)
-# 
-#             # Save for prediction use
-#             joblib.dump((df_ready, numeric_cols), 'models/prepared_data.pkl')
-# 
-#             # Split train/test
-#             split_date = pd.to_datetime('2024-01-01')
-#             train_df = df_ready[df_ready['date'] < split_date]
-#             test_df = df_ready[df_ready['date'] >= split_date]
-# 
-#             target_horizons = [1, 3, 5, 10]
-#             y_train = train_df[[f'target_return_{h}d' for h in target_horizons]].values
-#             y_test = test_df[[f'target_return_{h}d' for h in target_horizons]].values
-# 
-#             # Scale features
-#             X_train_scaled, X_test_scaled, scaler = scale_features(
-#                 train_df, test_df, numeric_cols
-#             )
-#             
-#             # Save scaler
-#             joblib.dump(scaler, 'models/scaler.pkl')
-# 
-#             st.info("Training XGBoost model...")
-#             model = train_model(X_train_scaled, y_train)
-#             save_model(model, 'models/regression_model.pkl')
-# 
-#             # Evaluate
-#             from sklearn.metrics import mean_absolute_error, r2_score
-#             y_pred = model.predict(X_test_scaled)
-#             
-#             st.success("Training Complete!")
-# 
-#             results_df = pd.DataFrame({
-#                 'Horizon (days)': target_horizons,
-#                 'MAE': [mean_absolute_error(y_test[:, i], y_pred[:, i])
-#                         for i in range(len(target_horizons))],
-#                 'R2': [r2_score(y_test[:, i], y_pred[:, i])
-#                        for i in range(len(target_horizons))]
-#             })
-#             st.dataframe(results_df)
-# 
-#             # Feature importance
-#             st.subheader("Top Features")
-#             feature_importance = model.estimators_[0].feature_importances_
-#             top_features = sorted(zip(numeric_cols, feature_importance), 
-#                                  key=lambda x: x[1], reverse=True)[:10]
-#             st.bar_chart(pd.DataFrame(top_features, columns=['Feature', 'Importance'])
-#                         .set_index('Feature'))    
-# 
-with tab3:
+with tab2:
     # App Interface
     st.subheader("🔮 Predict")
     st.header("Prediction Settings")
